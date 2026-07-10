@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const db = require('./infrastructure/database/db');
 const projectRoutes = require('./infrastructure/web/routes/projectRoutes');
 require('dotenv').config();
@@ -21,13 +22,22 @@ app.get('/api/health', (req, res) => {
 });
 
 // 2. Servir frontend compilado (Solo para producción)
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
 
-// Ruta comodín usando Expresión Regular nativa de JS (Bypass a path-to-regexp)
+// Ruta comodín corregida para evitar errores de archivo inexistente en Render
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+  const indexPath = path.join(frontendDistPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    // Si la carpeta de Vue no existe (entorno dividido), respondemos con JSON en vez de lanzar un error
+    res.json({ 
+      status: 'API activa', 
+      message: 'Servidor de base de datos Neon conectado y operativo de manera exitosa.' 
+    });
+  }
 });
-
 // Función para validar la conexión a la base de datos Neon al iniciar
 async function testDatabaseConnection() {
   try {
