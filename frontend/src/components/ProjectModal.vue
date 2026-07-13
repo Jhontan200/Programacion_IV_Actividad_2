@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
+import Swal from 'sweetalert2'; // Importación añadida
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
@@ -9,7 +10,6 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'save']);
 
-// Estado local del formulario
 const form = ref({
   name: '',
   description: '',
@@ -17,10 +17,8 @@ const form = ref({
   statusId: ''
 });
 
-// Detectar si estamos editando o creando cuando cambia la prop 'project'
 watch(() => props.project, (newVal) => {
   if (newVal) {
-    // Formatear fecha para el input type="date" (YYYY-MM-DD)
     const formattedDate = newVal.startDate ? newVal.startDate.substring(0, 10) : '';
     form.value = {
       name: newVal.name || '',
@@ -29,20 +27,19 @@ watch(() => props.project, (newVal) => {
       statusId: newVal.statusId || ''
     };
   } else {
-    // Limpiar formulario para nuevo proyecto
-    form.value = {
-      name: '',
-      description: '',
-      startDate: '',
-      statusId: ''
-    };
+    form.value = { name: '', description: '', startDate: '', statusId: '' };
   }
 }, { immediate: true });
 
 const handleSubmit = () => {
-  // Validación básica del lado del cliente
+  // Validación de campos vacíos con SweetAlert2
   if (!form.value.name.trim() || !form.value.startDate || !form.value.statusId) {
-    alert('Por favor, completa los campos requeridos (*).');
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campos incompletos',
+      text: 'Por favor, completa todos los campos requeridos (*).',
+      confirmButtonColor: '#3b82f6'
+    });
     return;
   }
   emit('save', { ...form.value });
@@ -51,14 +48,11 @@ const handleSubmit = () => {
 
 <template>
   <div v-if="isOpen" class="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
-    <!-- Fondo oscuro traslúcido -->
     <div class="fixed inset-0 bg-black opacity-50" @click="emit('close')"></div>
 
-    <!-- Contenido del Modal -->
-    <div class="relative w-full max-w-lg mx-auto my-6 z-50">
+    <div class="relative w-full max-w-lg mx-auto my-6 z-50 p-4">
       <div class="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none">
         
-        <!-- Cabecera -->
         <div class="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
           <h3 class="text-xl font-semibold text-slate-800">
             {{ project ? 'Editar Proyecto' : 'Agregar Nuevo Proyecto' }}
@@ -68,11 +62,9 @@ const handleSubmit = () => {
           </button>
         </div>
 
-        <!-- Cuerpo / Formulario -->
         <form @submit.prevent="handleSubmit">
           <div class="relative p-6 flex-auto space-y-4">
             
-            <!-- Nombre -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Nombre del Proyecto *</label>
               <input 
@@ -84,7 +76,6 @@ const handleSubmit = () => {
               />
             </div>
 
-            <!-- Descripción -->
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
               <textarea 
@@ -95,7 +86,6 @@ const handleSubmit = () => {
               ></textarea>
             </div>
 
-            <!-- Fecha de Inicio y Estado -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Inicio *</label>
@@ -124,7 +114,6 @@ const handleSubmit = () => {
 
           </div>
 
-          <!-- Pie / Acciones -->
           <div class="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b space-x-3">
             <button 
               type="button" 

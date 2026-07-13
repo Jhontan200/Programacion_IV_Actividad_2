@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const db = require('./infrastructure/database/db');
 const projectRoutes = require('./infrastructure/web/routes/projectRoutes');
+const userRoutes = require('./infrastructure/web/routes/userRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // 1. Rutas de la API REST
 app.use('/api/projects', projectRoutes);
+app.use('/api/users', userRoutes);
 
 // Ruta básica de verificación de salud
 app.get('/api/health', (req, res) => {
