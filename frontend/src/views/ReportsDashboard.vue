@@ -4,13 +4,13 @@ import Chart from 'chart.js/auto';
 
 const props = defineProps({
   projects: { type: Array, required: true },
-  users: { type: Array, default: () => [] } // Propiedad de usuarios añadida
+  users: { type: Array, default: () => [] }
 });
 
 // Canvas Refs
 const barChartCanvas = ref(null);
 const doughnutChartCanvas = ref(null);
-const userChartCanvas = ref(null); // Canvas agregado
+const userChartCanvas = ref(null);
 
 // Instancias Chart.js
 let barChartInstance = null;
@@ -98,7 +98,7 @@ const renderCharts = () => {
     }
   });
 
-  // 3. NUEVO: Gráfico de Donut (Usuarios por Rol)
+  // 3. Gráfico de Donut (Usuarios por Rol)
   userChartInstance = new Chart(userChartCanvas.value, {
     type: 'doughnut',
     data: {
@@ -106,9 +106,9 @@ const renderCharts = () => {
       datasets: [{
         data: [adminCount.value, engineerCount.value, supervisorCount.value],
         backgroundColor: [
-          'rgba(99, 102, 241, 0.85)',  // Indigo
-          'rgba(6, 182, 212, 0.85)',   // Cyan
-          'rgba(168, 85, 247, 0.85)'   // Purple
+          'rgba(99, 102, 241, 0.85)',
+          'rgba(6, 182, 212, 0.85)',
+          'rgba(168, 85, 247, 0.85)'
         ],
         borderColor: ['#6366f1', '#06b6d4', '#a855f7'],
         borderWidth: 1
@@ -176,7 +176,7 @@ watch(() => [props.projects, props.users], () => { renderCharts(); }, { deep: tr
         </div>
       </div>
 
-      <!-- NUEVA TARJETA: Total Usuarios -->
+      <!-- Total Usuarios -->
       <div class="bg-white p-6 rounded-lg shadow border border-slate-200 flex items-center space-x-4">
         <div class="p-3 rounded-full bg-indigo-50 text-indigo-600">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
@@ -207,21 +207,23 @@ watch(() => [props.projects, props.users], () => { renderCharts(); }, { deep: tr
         <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">Tasa de Finalización</h3>
         <div class="relative flex items-center justify-center h-48">
           <canvas ref="doughnutChartCanvas"></canvas>
-          <div class="absolute flex flex-col items-center justify-center pointer-events-none pb-2">
-            <span class="text-3xl font-extrabold text-slate-800">{{ completionPercentage }}%</span>
-            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Avance</span>
+          <!-- CORRECCIÓN: -translate-y-3 para compensar el desvío hacia arriba de Chart.js -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none -translate-y-3">
+            <span class="text-3xl font-extrabold text-slate-800 leading-none">{{ completionPercentage }}%</span>
+            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1">Avance</span>
           </div>
         </div>
       </div>
 
-      <!-- NUEVA GRÁFICA: Donut (Usuarios por Rol) -->
+     <!-- NUEVA GRÁFICA: Donut (Usuarios por Rol) -->
       <div class="bg-white p-6 rounded-lg shadow border border-slate-200">
         <h3 class="text-lg font-bold text-slate-800 mb-4 text-center">Usuarios por Rol</h3>
         <div class="relative flex items-center justify-center h-48">
           <canvas ref="userChartCanvas"></canvas>
-          <div class="absolute flex flex-col items-center justify-center pointer-events-none pb-2">
-            <span class="text-3xl font-extrabold text-slate-800">{{ totalUsers }}</span>
-            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Cuentas</span>
+          <!-- CORRECCIÓN: Ajustado a -translate-y-5 por tener una leyenda más alta -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none -translate-y-5">
+            <span class="text-3xl font-extrabold text-slate-800 leading-none">{{ totalUsers }}</span>
+            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-1">Cuentas</span>
           </div>
         </div>
       </div>

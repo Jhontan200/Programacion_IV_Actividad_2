@@ -15,19 +15,35 @@ class PgUserRepository extends UserRepository {
         return new User(rows[0]);
     }
 
-    // NUEVO: Actualización en base de datos
+    // Actualización condicional en base de datos
     async update(id, userData) {
         const { name, email, role, password } = userData;
-        const queryText = `
-      UPDATE users 
-      SET name = $1, email = $2, role = $3, password = $4 
-      WHERE id = $5 RETURNING *
-    `;
-        const { rows } = await db.query(queryText, [name, email, role, password, id]);
+        let queryText;
+        let values;
+
+        // Si el usuario ingresó una contraseña no vacía, se actualiza todo incluyendo la clave
+        if (password && password.trim() !== '') {
+            queryText = `
+        UPDATE users 
+        SET name = $1, email = $2, role = $3, password = $4 
+        WHERE id = $5 RETURNING *
+      `;
+            values = [name, email, role, password, id];
+        } else {
+            // Si la contraseña llegó vacía, se omitirá su actualización en SQL para conservar la actual
+            queryText = `
+        UPDATE users 
+        SET name = $1, email = $2, role = $3 
+        WHERE id = $4 RETURNING *
+      `;
+            values = [name, email, role, id];
+        }
+
+        const { rows } = await db.query(queryText, values);
         if (rows.length === 0) return null;
         return new User(rows[0]);
     }
-
+    
     async delete(id) {
         const queryText = 'DELETE FROM users WHERE id = $1 RETURNING id';
         const { rows } = await db.query(queryText, [id]);

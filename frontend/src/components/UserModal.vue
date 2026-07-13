@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue';
-import Swal from 'sweetalert2'; // Importación añadida
+import Swal from 'sweetalert2';
 
 const props = defineProps({
   isOpen: { type: Boolean, required: true },
@@ -19,42 +19,59 @@ const form = ref({
 
 const showPassword = ref(false);
 
-watch(() => props.user, (newVal) => {
-  if (newVal) {
-    form.value = {
-      name: newVal.name || '',
-      email: newVal.email || '',
-      role: newVal.role || '',
-      password: newVal.password || '',
-      confirmPassword: newVal.password || ''
-    };
-  } else {
-    form.value = { name: '', email: '', role: '', password: '', confirmPassword: '' };
+watch(() => props.isOpen, (isOpenVal) => {
+  if (isOpenVal) {
+    if (props.user) {
+      // Modo Edición: Cargar datos generales y dejar las contraseñas estrictamente vacías
+      form.value = {
+        name: props.user.name || '',
+        email: props.user.email || '',
+        role: props.user.role || '',
+        password: '',
+        confirmPassword: ''
+      };
+    } else {
+      // Modo Creación: Limpiar todo el formulario
+      form.value = { name: '', email: '', role: '', password: '', confirmPassword: '' };
+    }
+    showPassword.value = false;
   }
-  showPassword.value = false;
 }, { immediate: true });
 
 const handleSubmit = () => {
-  // 1. Validación de campos obligatorios vacíos con SweetAlert2
-  if (!form.value.name.trim() || !form.value.email.trim() || !form.value.role || !form.value.password.trim()) {
+  // 1. Validar campos generales obligatorios
+  if (!form.value.name.trim() || !form.value.email.trim() || !form.value.role) {
     Swal.fire({
       icon: 'warning',
       title: 'Campos incompletos',
-      text: 'Por favor, completa todos los campos requeridos (*).',
+      text: 'Por favor, completa los campos requeridos (*).',
       confirmButtonColor: '#3b82f6'
     });
     return;
   }
 
-  // 2. Validación de coincidencia de contraseña con SweetAlert2
-  if (form.value.password !== form.value.confirmPassword) {
+  // 2. Si es un usuario nuevo, la contraseña es obligatoria
+  if (!props.user && !form.value.password.trim()) {
     Swal.fire({
-      icon: 'error',
-      title: 'Error de coincidencia',
-      text: 'Las contraseñas ingresadas no coinciden. Por favor, verifícalas.',
-      confirmButtonColor: '#ef4444'
+      icon: 'warning',
+      title: 'Contraseña requerida',
+      text: 'La contraseña de ingreso es obligatoria para nuevos usuarios.',
+      confirmButtonColor: '#3b82f6'
     });
     return;
+  }
+
+  // 3. Si se escribió algo en la contraseña, exigir que coincida con la confirmación
+  if (form.value.password.trim() !== '') {
+    if (form.value.password !== form.value.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de coincidencia',
+        text: 'Las contraseñas ingresadas no coinciden. Por favor, verifícalas.',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
   }
 
   emit('save', { ...form.value });
@@ -98,14 +115,17 @@ const handleSubmit = () => {
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Campo de Contraseña (quitamos required nativo para manejarlo con JS) -->
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña *</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                  Contraseña <span v-if="!user">*</span>
+                  <span v-else class="text-[10px] text-slate-400 font-normal block">(Dejar en blanco para no cambiar)</span>
+                </label>
                 <div class="relative">
                   <input 
                     v-model="form.password" 
                     :type="showPassword ? 'text' : 'password'" 
                     class="w-full pl-3 pr-10 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    required 
                   />
                   <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
@@ -117,13 +137,16 @@ const handleSubmit = () => {
                 </div>
               </div>
 
+              <!-- Campo Repetir Contraseña -->
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Repetir Contraseña *</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">
+                  Repetir Contraseña <span v-if="!user">*</span>
+                  <span v-else class="text-[10px] text-slate-400 font-normal block">(Dejar en blanco para no cambiar)</span>
+                </label>
                 <input 
                   v-model="form.confirmPassword" 
                   :type="showPassword ? 'text' : 'password'" 
                   class="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                  required 
                 />
               </div>
             </div>
