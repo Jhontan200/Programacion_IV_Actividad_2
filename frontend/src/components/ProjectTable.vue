@@ -8,7 +8,15 @@ const emit = defineEmits(['edit', 'view', 'delete']);
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  // Extraemos año, mes y día directamente en UTC para evitar el desfase de zona horaria
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+  
+  // Reconstruimos la fecha en hora local exacta
+  const localDate = new Date(year, month, day);
+  return localDate.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const getStatusBadgeClass = (statusName) => {

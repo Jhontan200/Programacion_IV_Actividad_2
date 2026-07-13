@@ -10,7 +10,14 @@ const emit = defineEmits(['close']);
 const formatDate = (dateStr) => {
   if (!dateStr) return 'No registrada';
   const date = new Date(dateStr);
-  return date.toLocaleDateString('es-ES', { 
+  
+  // Extraemos componentes UTC limpios
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth();
+  const day = date.getUTCDate();
+  
+  const localDate = new Date(year, month, day);
+  return localDate.toLocaleDateString('es-ES', { 
     year: 'numeric', 
     month: 'long', 
     day: 'numeric' 

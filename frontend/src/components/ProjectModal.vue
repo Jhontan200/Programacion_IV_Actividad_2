@@ -19,7 +19,13 @@ const form = ref({
 
 watch(() => props.project, (newVal) => {
   if (newVal) {
-    const formattedDate = newVal.startDate ? newVal.startDate.substring(0, 10) : '';
+    // Convertir el string ISO a un objeto fecha y extraer componentes UTC limpios
+    const date = new Date(newVal.startDate);
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`; // Genera "YYYY-MM-DD" exacto
+
     form.value = {
       name: newVal.name || '',
       description: newVal.description || '',
